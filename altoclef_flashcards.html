@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Alto Clef Flashcards</title>
+<style>
+  :root {
+    --bg: #f4f1ea;
+    --card: #fffdf8;
+    --ink: #1f1d1a;
+    --muted: #6f6a60;
+    --line: #d9d3c6;
+    --accent: #7a4b2a;
+    --good: #2f7d4f;
+    --bad: #b2452f;
+    --hl: #c9862f;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    display: flex; flex-direction: column; align-items: center;
+    padding: env(safe-area-inset-top) 12px env(safe-area-inset-bottom);
+    -webkit-tap-highlight-color: transparent;
+  }
+  header {
+    width: 100%; max-width: 560px;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 4px 8px;
+  }
+  header h1 { font-size: 1.15rem; margin: 0; letter-spacing: .01em; }
+  header h1 span { color: var(--muted); font-weight: 400; }
+  button {
+    font: inherit; cursor: pointer; border-radius: 10px;
+    border: 1px solid var(--line); background: var(--card); color: var(--ink);
+    padding: 10px 14px;
+  }
+  button:active { transform: translateY(1px); }
+  .stats {
+    width: 100%; max-width: 560px;
+    display: flex; gap: 14px; justify-content: space-between;
+    font-size: .9rem; color: var(--muted); padding: 0 4px 10px;
+  }
+  .stats b { color: var(--ink); font-variant-numeric: tabular-nums; }
+  .card {
+    width: 100%; max-width: 560px; min-height: 360px;
+    background: var(--card); border: 1px solid var(--line); border-radius: 16px;
+    box-shadow: 0 2px 10px rgba(0,0,0,.05);
+    padding: 18px 16px 20px; user-select: none;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    cursor: pointer;
+  }
+  .prompt { font-size: .85rem; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 6px; }
+  .staff svg { width: 100%; max-width: 360px; height: auto; display: block; }
+  .bigq { font-size: 1.6rem; font-weight: 600; margin: 24px 0 6px; text-align: center; }
+  .hint { color: var(--muted); font-size: .95rem; margin-top: 4px; }
+  .answer { width: 100%; display: none; margin-top: 10px; border-top: 1px dashed var(--line); padding-top: 14px; }
+  .card.flipped .answer { display: flex; gap: 14px; align-items: center; justify-content: center; flex-wrap: wrap; }
+  .answer .text { min-width: 180px; }
+  .note-name { font-size: 1.9rem; font-weight: 650; }
+  .opt { font-size: 1.05rem; margin: 6px 0; }
+  .opt .str { display: inline-block; min-width: 1.9em; text-align: center; font-weight: 700; color: #fff; background: var(--accent); border-radius: 6px; padding: 1px 6px; margin-right: 6px; }
+  .opt small { color: var(--muted); }
+  .board svg { width: 150px; height: auto; display: block; margin: 0 auto; }
+  .controls { width: 100%; max-width: 560px; display: flex; gap: 10px; padding: 14px 0; }
+  .controls button { flex: 1; padding: 16px; font-size: 1.05rem; font-weight: 600; }
+  #again { color: var(--bad); border-color: #e6bdb3; }
+  #good { color: var(--good); border-color: #b7d8c3; }
+  #show { background: var(--ink); color: var(--card); border-color: var(--ink); }
+  .tap { color: var(--muted); font-size: .85rem; margin-top: 14px; }
+  .card.flipped .tap { display: none; }
+  dialog { border: 1px solid var(--line); border-radius: 16px; max-width: 420px; width: calc(100% - 24px); background: var(--card); color: var(--ink); padding: 18px 18px 14px; }
+  dialog::backdrop { background: rgba(0,0,0,.3); }
+  dialog h2 { margin: 0 0 10px; font-size: 1.1rem; }
+  fieldset { border: 1px solid var(--line); border-radius: 10px; margin: 0 0 12px; padding: 8px 12px 10px; }
+  legend { color: var(--muted); font-size: .85rem; padding: 0 4px; }
+  label { display: flex; align-items: center; gap: 8px; padding: 5px 0; }
+  .row { display: flex; flex-wrap: wrap; gap: 4px 16px; }
+  input[type=checkbox], input[type=radio] { width: 20px; height: 20px; accent-color: var(--accent); }
+  .dlg-actions { display: flex; justify-content: space-between; gap: 10px; margin-top: 6px; }
+  .warn { color: var(--bad); font-size: .9rem; min-height: 1.2em; }
+  footer { color: var(--muted); font-size: .8rem; padding: 6px 0 16px; text-align: center; max-width: 560px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Alto Clef <span>· viola, 1st position</span></h1>
+  <button id="settingsBtn" aria-label="Settings">Settings</button>
+</header>
+
+<div class="stats">
+  <div>Session <b id="sCorrect">0</b>/<b id="sTotal">0</b></div>
+  <div>Streak <b id="sStreak">0</b></div>
+  <div>Deck <b id="sDeck">0</b></div>
+</div>
+
+<div class="card" id="card" role="button" tabindex="0" aria-label="Flashcard, tap to flip">
+  <div class="prompt" id="prompt"></div>
+  <div id="front"></div>
+  <div class="answer" id="answer"></div>
+  <div class="tap">tap card or press space to flip</div>
+</div>
+
+<div class="controls" id="controls"></div>
+
+<footer>Fingering key: L1 = low 1 (half step), H2 = high 2, H3 = high 3 (same note as low 4). 4th finger equals the next open string.</footer>
+
+<dialog id="settings">
+  <h2>Settings</h2>
+  <fieldset>
+    <legend>Mode</legend>
+    <label><input type="radio" name="mode" value="read"> Read: note on staff → string &amp; finger</label>
+    <label><input type="radio" name="mode" value="find"> Find: string &amp; finger → note on staff</label>
+  </fieldset>
+  <fieldset>
+    <legend>Strings</legend>
+    <div class="row">
+      <label><input type="checkbox" name="str" value="C"> C</label>
+      <label><input type="checkbox" name="str" value="G"> G</label>
+      <label><input type="checkbox" name="str" value="D"> D</label>
+      <label><input type="checkbox" name="str" value="A"> A</label>
+    </div>
+  </fieldset>
+  <fieldset>
+    <legend>Notes</legend>
+    <label><input type="checkbox" id="optNat"> Naturals</label>
+    <label><input type="checkbox" id="optSharp"> Sharps (♯)</label>
+    <label><input type="checkbox" id="optFlat"> Flats (♭)</label>
+    <label><input type="checkbox" id="optHint"> Show note name on the front (beginner hint)</label>
+  </fieldset>
+  <div class="warn" id="warn"></div>
+  <div class="dlg-actions">
+    <button id="resetBtn" type="button">Reset progress</button>
+    <button id="closeBtn" type="button">Done</button>
+  </div>
+</dialog>
+
+<script>
+(() => {
+  // ---------- Music model ----------
+  const STRINGS = [
+    { name: 'C', midi: 48 },  // C3
+    { name: 'G', midi: 55 },  // G3
+    { name: 'D', midi: 62 },  // D4
+    { name: 'A', midi: 69 },  // A4
+  ];
+  // semitones above the open string, 1st position
+  const FINGER_LONG  = ['open string', 'low 1st finger', '1st finger', 'low 2nd finger', 'high 2nd finger', '3rd finger', 'high 3rd finger (= low 4th)', '4th finger'];
+  const FINGER_SHORT = ['0', 'L1', '1', 'L2', 'H2', '3', 'H3', '4'];
+  const LETTERS = 'CDEFGAB';
+  const NAT_PC = [0, 2, 4, 5, 7, 9, 11];
+  const ACC = { '-1': '♭', '0': '', '1': '♯' };
+
+  function spellings(midi) {
+    const pc = midi % 12, oct = Math.floor(midi / 12) - 1;
+    const i = NAT_PC.indexOf(pc);
+    if (i >= 0) return [{ letter: i, acc: 0, oct }];
+    return [
+      { letter: NAT_PC.indexOf(pc - 1), acc: 1, oct },
+      { letter: NAT_PC.indexOf(pc + 1), acc: -1, oct },
+    ];
+  }
+  const stepOf = sp => (sp.oct - 4) * 7 + sp.letter;        // 0 = middle C (alto middle line)
+  const nameOf = sp => LETTERS[sp.letter] + ACC[sp.acc];
+  function positions(midi) {
+    return STRINGS.filter(s => midi >= s.midi && midi <= s.midi + 7)
+                  .map(s => ({ string: s.name, semi: midi - s.midi }));
+  }
+
+  // ---------- Settings & persistence ----------
+  const DEFAULTS = { mode: 'read', strings: ['C', 'G', 'D', 'A'], nat: true, sharp: true, flat: false, hint: false };
+  const store = {
+    get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch { return d; } },
+    set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
+  };
+  let settings = Object.assign({}, DEFAULTS, store.get('acf-settings', {}));
+  let stats = store.get('acf-stats', {});   // id -> {h, m}
+
+  const accAllowed = acc => (acc === 0 && settings.nat) || (acc === 1 && settings.sharp) || (acc === -1 && settings.flat);
+
+  function buildDeck() {
+    const deck = [];
+    if (settings.mode === 'read') {
+      for (let midi = 48; midi <= 76; midi++) {
+        const pos = positions(midi).filter(p => settings.strings.includes(p.string));
+        if (!pos.length) continue;
+        for (const sp of spellings(midi)) {
+          if (!accAllowed(sp.acc)) continue;
+          deck.push({ id: `R${midi}${sp.acc}`, mode: 'read', midi, sp, pos });
+        }
+      }
+    } else {
+      for (const s of STRINGS) {
+        if (!settings.strings.includes(s.name)) continue;
+        for (let semi = 0; semi <= 7; semi++) {
+          const midi = s.midi + semi;
+          const sps = spellings(midi).filter(sp => accAllowed(sp.acc));
+          if (!sps.length) continue;
+          deck.push({ id: `F${s.name}${semi}`, mode: 'find', midi, sps, string: s.name, semi });
+        }
+      }
+    }
+    return deck;
+  }
+
+  // ---------- Drawing ----------
+  const SP = 12;          // staff space
+  const MID = 84;         // y of middle line (C4)
+  const yOf = step => MID - step * SP / 2;
+
+  function cClef(x) {
+    const T = MID - 2 * SP, B = MID + 2 * SP, M = MID;
+    const lobe = (dir) => {
+      // dir = -1 upper lobe, +1 lower lobe
+      const y = v => M + dir * v;
+      return `<path d="M ${x+12} ${y(0)} L ${x+16} ${y(5)}
+        C ${x+18} ${y(12)}, ${x+19} ${y(19)}, ${x+25} ${y(22.5)}
+        C ${x+33} ${y(26)}, ${x+40} ${y(21)}, ${x+39} ${y(13)}
+        C ${x+38} ${y(6)}, ${x+31} ${y(5)}, ${x+29} ${y(9.5)}"
+        fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"/>
+        <circle cx="${x+30.5}" cy="${y(11.5)}" r="3.6" fill="currentColor"/>`;
+    };
+    return `<g>
+      <rect x="${x}" y="${T}" width="6.5" height="${B - T}" fill="currentColor"/>
+      <rect x="${x+9}" y="${T}" width="2.2" height="${B - T}" fill="currentColor"/>
+      ${lobe(-1)}${lobe(1)}
+    </g>`;
+  }
+
+  function noteSVG(sp, x, color) {
+    const step = stepOf(sp), y = yOf(step);
+    let s = '';
+    // ledger lines
+    for (let k = -6; k >= step; k -= 2) s += `<line x1="${x-15}" x2="${x+15}" y1="${yOf(k)}" y2="${yOf(k)}" stroke="currentColor" stroke-width="1.5"/>`;
+    for (let k = 6; k <= step; k += 2)  s += `<line x1="${x-15}" x2="${x+15}" y1="${yOf(k)}" y2="${yOf(k)}" stroke="currentColor" stroke-width="1.5"/>`;
+    // accidental
+    if (sp.acc) s += `<text x="${x-17}" y="${y + (sp.acc === 1 ? 10 : 6)}" font-size="${sp.acc === 1 ? 32 : 32}" text-anchor="end" fill="${color}" font-family="'Apple Symbols','Segoe UI Symbol','DejaVu Sans',serif">${ACC[sp.acc]}</text>`;
+    // head
+    s += `<ellipse cx="${x}" cy="${y}" rx="8.2" ry="6" transform="rotate(-20 ${x} ${y})" fill="${color}"/>`;
+    // stem
+    if (step >= 0) s += `<line x1="${x-7.6}" x2="${x-7.6}" y1="${y+1.5}" y2="${y+36}" stroke="${color}" stroke-width="1.8"/>`;
+    else           s += `<line x1="${x+7.6}" x2="${x+7.6}" y1="${y-1.5}" y2="${y-36}" stroke="${color}" stroke-width="1.8"/>`;
+    return s;
+  }
+
+  function staffSVG(sps) {
+    const W = 300, H = 160;
+    let s = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="color:var(--ink)" aria-label="alto clef staff">`;
+    for (let i = -2; i <= 2; i++) {
+      const y = MID + i * SP;
+      s += `<line x1="8" x2="${W-8}" y1="${y}" y2="${y}" stroke="currentColor" stroke-width="1.3"/>`;
+    }
+    s += `<line x1="8" x2="8" y1="${MID-2*SP}" y2="${MID+2*SP}" stroke="currentColor" stroke-width="1.3"/>`;
+    s += cClef(18);
+    const xs = sps.length === 1 ? [175] : [145, 225];
+    sps.forEach((sp, i) => { s += noteSVG(sp, xs[i], 'var(--ink)'); });
+    return s + '</svg>';
+  }
+
+  function boardSVG(pos) {
+    const xs = { C: 30, G: 60, D: 90, A: 120 };
+    const top = 40, dy = 24;
+    let s = `<svg viewBox="0 0 150 ${top + 7 * dy + 22}" xmlns="http://www.w3.org/2000/svg" aria-label="fingerboard">`;
+    s += `<rect x="16" y="${top}" width="118" height="${7 * dy + 12}" rx="4" fill="#2b2622"/>`;
+    // finger tapes at 1, high 2, 3, 4 (2,4,5,7 semitones)
+    for (const t of [2, 4, 5, 7]) s += `<line x1="16" x2="134" y1="${top + t * dy}" y2="${top + t * dy}" stroke="#8a8073" stroke-width="1" stroke-dasharray="3 3"/>`;
+    s += `<rect x="14" y="${top - 4}" width="122" height="5" fill="#e8e0cf"/>`;   // nut
+    for (const [n, x] of Object.entries(xs)) {
+      s += `<line x1="${x}" x2="${x}" y1="${top}" y2="${top + 7 * dy + 12}" stroke="#d8cdb8" stroke-width="${n === 'C' ? 2.6 : n === 'G' ? 2.1 : n === 'D' ? 1.6 : 1.2}"/>`;
+      s += `<text x="${x}" y="14" text-anchor="middle" font-size="13" font-weight="700" fill="var(--ink)">${n}</text>`;
+    }
+    for (const p of pos) {
+      const x = xs[p.string];
+      if (p.semi === 0) {
+        s += `<circle cx="${x}" cy="${top - 14}" r="8" fill="none" stroke="var(--hl)" stroke-width="2.5"/>`;
+        s += `<text x="${x}" y="${top - 10}" text-anchor="middle" font-size="10" font-weight="700" fill="var(--hl)">0</text>`;
+      } else {
+        const y = top + p.semi * dy;
+        s += `<circle cx="${x}" cy="${y}" r="10" fill="var(--hl)"/>`;
+        s += `<text x="${x}" y="${y + 4}" text-anchor="middle" font-size="10" font-weight="700" fill="#1f1d1a">${FINGER_SHORT[p.semi]}</text>`;
+      }
+    }
+    return s + '</svg>';
+  }
+
+  const optHTML = p => `<div class="opt"><span class="str">${p.string}</span>${FINGER_LONG[p.semi]}${p.semi === 7 ? ' <small>(= next open string)</small>' : ''}</div>`;
+
+  // ---------- Card flow ----------
+  const $ = id => document.getElementById(id);
+  let deck = [], current = null, lastId = null, flipped = false;
+  const session = { correct: 0, total: 0, streak: 0 };
+
+  function weight(c) {
+    const st = stats[c.id] || { h: 0, m: 0 };
+    return Math.min(8, Math.max(0.35, 1 + 2 * st.m - 0.6 * st.h));
+  }
+  function pick() {
+    const pool = deck.length > 1 ? deck.filter(c => c.id !== lastId) : deck;
+    const total = pool.reduce((a, c) => a + weight(c), 0);
+    let r = Math.random() * total;
+    for (const c of pool) { r -= weight(c); if (r <= 0) return c; }
+    return pool[pool.length - 1];
+  }
+
+  function render() {
+    const card = $('card');
+    card.classList.toggle('flipped', flipped);
+    $('sDeck').textContent = deck.length;
+    if (!current) { $('prompt').textContent = ''; $('front').innerHTML = '<div class="bigq">No cards</div><div class="hint">Open Settings and enable at least one string and note type.</div>'; $('answer').innerHTML = ''; $('controls').innerHTML = ''; return; }
+
+    if (current.mode === 'read') {
+      $('prompt').textContent = 'Which string and finger?';
+      $('front').innerHTML = `<div class="staff">${staffSVG([current.sp])}</div>` +
+        (settings.hint ? `<div class="hint" style="text-align:center">${nameOf(current.sp)}${current.sp.oct}</div>` : '');
+      $('answer').innerHTML = `<div class="text"><div class="note-name">${nameOf(current.sp)}<small style="font-size:.55em;color:var(--muted)">${current.sp.oct}</small></div>${current.pos.map(optHTML).join('')}</div><div class="board">${boardSVG(current.pos)}</div>`;
+    } else {
+      $('prompt').textContent = 'Where is this note on the staff?';
+      const label = FINGER_LONG[current.semi];
+      $('front').innerHTML = `<div class="bigq"><span class="str" style="background:var(--accent);color:#fff;border-radius:8px;padding:2px 10px">${current.string}</span> ${label}</div><div class="board" style="margin-top:8px">${boardSVG([{ string: current.string, semi: current.semi }])}</div>`;
+      const names = current.sps.map(sp => nameOf(sp) + sp.oct).join(' = ');
+      const others = positions(current.midi).filter(p => p.string !== current.string);
+      $('answer').innerHTML = `<div class="staff" style="flex-basis:100%">${staffSVG(current.sps)}</div><div class="text" style="text-align:center"><div class="note-name">${names}</div>${others.length ? '<div class="hint">also: ' + others.map(p => p.string + ' string ' + (p.semi === 0 ? 'open' : FINGER_SHORT[p.semi])).join(', ') + '</div>' : ''}</div>`;
+    }
+
+    $('controls').innerHTML = flipped
+      ? `<button id="again">Again</button><button id="good">Got it</button>`
+      : `<button id="show">Show answer</button>`;
+    if (flipped) { $('again').onclick = () => grade(false); $('good').onclick = () => grade(true); }
+    else $('show').onclick = flip;
+  }
+
+  function updateStats() {
+    $('sCorrect').textContent = session.correct;
+    $('sTotal').textContent = session.total;
+    $('sStreak').textContent = session.streak;
+  }
+
+  function next() { lastId = current && current.id; current = deck.length ? pick() : null; flipped = false; render(); }
+  function flip() { if (!current) return; flipped = !flipped; render(); }
+  function grade(ok) {
+    if (!current || !flipped) return;
+    const st = stats[current.id] || { h: 0, m: 0 };
+    if (ok) { st.h++; session.correct++; session.streak++; } else { st.m++; session.streak = 0; }
+    stats[current.id] = st; store.set('acf-stats', stats);
+    session.total++; updateStats(); next();
+  }
+
+  $('card').addEventListener('click', e => { if (!e.target.closest('button')) flip(); });
+  document.addEventListener('keydown', e => {
+    if ($('settings').open) return;
+    if (e.code === 'Space' || e.code === 'Enter') { e.preventDefault(); flip(); }
+    else if (flipped && (e.key === '1' || e.key === 'ArrowLeft')) grade(false);
+    else if (flipped && (e.key === '2' || e.key === 'ArrowRight')) grade(true);
+  });
+
+  // ---------- Settings dialog ----------
+  const dlg = $('settings');
+  function loadForm() {
+    dlg.querySelectorAll('input[name=mode]').forEach(r => r.checked = r.value === settings.mode);
+    dlg.querySelectorAll('input[name=str]').forEach(c => c.checked = settings.strings.includes(c.value));
+    $('optNat').checked = settings.nat; $('optSharp').checked = settings.sharp;
+    $('optFlat').checked = settings.flat; $('optHint').checked = settings.hint;
+  }
+  function readForm() {
+    settings.mode = dlg.querySelector('input[name=mode]:checked').value;
+    settings.strings = [...dlg.querySelectorAll('input[name=str]:checked')].map(c => c.value);
+    settings.nat = $('optNat').checked; settings.sharp = $('optSharp').checked;
+    settings.flat = $('optFlat').checked; settings.hint = $('optHint').checked;
+    store.set('acf-settings', settings);
+    deck = buildDeck();
+    $('warn').textContent = deck.length ? '' : 'No cards match these settings.';
+  }
+  dlg.addEventListener('change', readForm);
+  $('settingsBtn').onclick = () => { loadForm(); $('warn').textContent = ''; dlg.showModal(); };
+  $('closeBtn').onclick = () => { dlg.close(); };
+  dlg.addEventListener('close', () => { deck = buildDeck(); next(); });
+  $('resetBtn').onclick = () => {
+    stats = {}; store.set('acf-stats', stats);
+    session.correct = session.total = session.streak = 0; updateStats();
+    $('resetBtn').textContent = 'Progress reset';
+    setTimeout(() => $('resetBtn').textContent = 'Reset progress', 1500);
+  };
+
+  deck = buildDeck();
+  updateStats();
+  next();
+})();
+</script>
+</body>
+</html>
